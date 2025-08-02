@@ -1,0 +1,1039 @@
+{% extends "base.html" %}
+
+{% block title %}Database Viewer - SURAKSHA{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Database Viewer</h1>
+        <p class="page-subtitle">View and manage all database tables</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ users_count }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ trainees_count }}</div>
+            <div class="stat-label">Total Trainees</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ trainings_count }}</div>
+            <div class="stat-label">Total Trainings</div>
+        </div>
+    </div>
+
+    <!-- Table Selection Tabs -->
+    <div class="card">
+        <div class="nav-tabs">
+            <button class="nav-tab {% if current_table == 'users' %}active{% endif %}" 
+                    onclick="window.location.href='/data?table=users'">
+                Users Table
+            </button>
+            <button class="nav-tab {% if current_table == 'trainees' %}active{% endif %}" 
+                    onclick="window.location.href='/data?table=trainees'">
+                Trainees Table
+            </button>
+            <button class="nav-tab {% if current_table == 'trainings' %}active{% endif %}" 
+                    onclick="window.location.href='/data?table=trainings'">
+                Trainings Table
+            </button>
+        </div>
+
+        <!-- Users Table -->
+        {% if current_table == 'users' and tables_data.users %}
+        <div class="card-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="card-title">Users Table ({{ tables_data.users|length }} records)</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel('users')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('users')">
+                        <span>📄</span> Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('addUserModal')">
+                        Add New User
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Mobile</th>
+                            <th>Gender</th>
+                            <th>Age</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in tables_data.users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.mobile_number or 'N/A' }}</td>
+                            <td>{{ user.gender or 'N/A' }}</td>
+                            <td>{{ user.age or 'N/A' }}</td>
+                            <td>
+                                <span class="badge {% if user.role == 'admin' %}badge-error{% else %}badge-info{% endif %}">
+                                    {{ user.role|title }}
+                                </span>
+                            </td>
+                            <td>{{ user.department or 'N/A' }}</td>
+                            <td>{{ user.designation or 'N/A' }}</td>
+                            <td>
+                                <div class="actions-cell">
+                                    <button class="btn btn-sm btn-secondary" onclick="editUser({{ user.id }})">
+                                        Edit
+                                    </button>
+                                    {% if user.role != 'admin' %}
+                                    <button class="btn btn-sm btn-danger" onclick="deleteUser({{ user.id }})">
+                                        Delete
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Trainees Table -->
+        {% if current_table == 'trainees' and tables_data.trainees %}
+        <div class="card-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="card-title">Trainees Table ({{ tables_data.trainees|length }} records)</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel('trainees')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('trainees')">
+                        <span>📄</span> Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('addTraineeModal')">
+                        Add New Trainee
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Gender</th>
+                            <th>Age</th>
+                            <th>Department</th>
+                            <th>Block</th>
+                            <th>Training Date</th>
+                            <th>CPR</th>
+                            <th>First Aid Kit</th>
+                            <th>Registered By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trainee in tables_data.trainees %}
+                        <tr>
+                            <td>{{ trainee.id }}</td>
+                            <td>{{ trainee.name }}</td>
+                            <td>{{ trainee.mobile_number or 'N/A' }}</td>
+                            <td>{{ trainee.gender }}</td>
+                            <td>{{ trainee.age }}</td>
+                            <td>{{ trainee.department }}</td>
+                            <td>{{ trainee.block }}</td>
+                            <td>{{ trainee.training_date }}</td>
+                            <td>
+                                {% if trainee.cpr_training %}
+                                    <span class="badge badge-success">Yes</span>
+                                {% else %}
+                                    <span class="badge badge-error">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if trainee.first_aid_kit_given %}
+                                    <span class="badge badge-success">Yes</span>
+                                {% else %}
+                                    <span class="badge badge-error">No</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ trainee.registered_by_name or 'N/A' }}</td>
+                            <td>
+                                <div class="actions-cell">
+                                    <button class="btn btn-sm btn-secondary" onclick="editTrainee({{ trainee.id }})">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteTrainee({{ trainee.id }})">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Trainings Table -->
+        {% if current_table == 'trainings' and tables_data.trainings %}
+        <div class="card-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="card-title">Trainings Table ({{ tables_data.trainings|length }} records)</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel('trainings')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('trainings')">
+                        <span>📄</span> Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('addTrainingModal')">
+                        Add New Training
+                    </button>
+                </div>
+            </div>
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Topic</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Duration</th>
+                            <th>Trainees</th>
+                            <th>Conducted By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for training in tables_data.trainings %}
+                        <tr>
+                            <td>{{ training.id }}</td>
+                            <td>{{ training.title }}</td>
+                            <td>{{ training.training_topic }}</td>
+                            <td>{{ training.training_date }}</td>
+                            <td>{{ training.training_time }}</td>
+                            <td>{{ training.duration_hours }}h</td>
+                            <td>{{ training.trainees }}</td>
+                            <td>{{ training.conducted_by_name or 'N/A' }}</td>
+                            <td>
+                                <div class="actions-cell">
+                                    <button class="btn btn-sm btn-secondary" onclick="editTraining({{ training.id }})">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteTraining({{ training.id }})">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Empty State -->
+        {% if not tables_data[current_table] %}
+        <div class="card-content">
+            <div class="empty-state">
+                <h3>No Data Found</h3>
+                <p>There are no records in the {{ current_table }} table.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content max-w-2xl">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New User</h3>
+            <button class="close-btn" onclick="hideModal('addUserModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addUserForm" onsubmit="handleAddUser(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Username *</label>
+                        <input type="text" name="username" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input type="password" name="password" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="mobile_number" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Gender *</label>
+                        <select name="gender" class="form-select" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Age *</label>
+                        <input type="number" name="age" class="form-input" min="18" max="100" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Role *</label>
+                        <select name="role" class="form-select" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="professional">Professional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <input type="text" name="department" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designation</label>
+                    <input type="text" name="designation" class="form-input">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('addUserModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Add User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content max-w-2xl">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit User</h3>
+            <button class="close-btn" onclick="hideModal('editUserModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editUserForm" onsubmit="handleEditUser(event)">
+                <input type="hidden" name="id" id="editUserId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" id="editUserName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Username *</label>
+                        <input type="text" name="username" id="editUserUsername" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="mobile_number" id="editUserMobile" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role *</label>
+                        <select name="role" id="editUserRole" class="form-select" required>
+                            <option value="professional">Professional</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" id="editUserGender" class="form-select">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Age</label>
+                        <input type="number" name="age" id="editUserAge" class="form-input" min="18" max="100">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <input type="text" name="department" id="editUserDepartment" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Designation</label>
+                        <input type="text" name="designation" id="editUserDesignation" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password (leave blank to keep current)</label>
+                    <input type="password" name="password" id="editUserPassword" class="form-input">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('editUserModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Update User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Trainee Modal -->
+<div id="editTraineeModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content max-w-2xl">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Trainee</h3>
+            <button class="close-btn" onclick="hideModal('editTraineeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editTraineeForm" onsubmit="handleEditTrainee(event)">
+                <input type="hidden" name="id" id="editTraineeId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" id="editTraineeName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="mobile_number" id="editTraineeMobile" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Gender *</label>
+                        <select name="gender" id="editTraineeGender" class="form-select" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Age *</label>
+                        <input type="number" name="age" id="editTraineeAge" class="form-input" min="16" max="100" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Department *</label>
+                        <input type="text" name="department" id="editTraineeDepartment" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Designation</label>
+                        <input type="text" name="designation" id="editTraineeDesignation" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Address *</label>
+                        <input type="text" name="address" id="editTraineeAddress" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Block *</label>
+                        <select name="block" id="editTraineeBlock" class="form-select" required>
+                            <option value="">Select Block</option>
+                            <option value="Raipur">Raipur</option>
+                            <option value="Birgaon">Birgaon</option>
+                            <option value="Abhanpur">Abhanpur</option>
+                            <option value="Arang">Arang</option>
+                            <option value="Dhariswa">Dhariswa</option>
+                            <option value="Tilda">Tilda</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Training Date *</label>
+                    <input type="date" name="training_date" id="editTraineeTrainingDate" class="form-input" required>
+                </div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="editTraineeCPR" name="cpr_training">
+                        <label for="editTraineeCPR">CPR Training Completed</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="editTraineeFirstAid" name="first_aid_kit_given">
+                        <label for="editTraineeFirstAid">First Aid Kit Given</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="editTraineeLifeSaving" name="life_saving_skills">
+                        <label for="editTraineeLifeSaving">Life Saving Skills Trained</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('editTraineeModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Update Trainee
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Training Modal -->
+<div id="editTrainingModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content max-w-2xl">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Training</h3>
+            <button class="close-btn" onclick="hideModal('editTrainingModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editTrainingForm" onsubmit="handleEditTraining(event)">
+                <input type="hidden" name="id" id="editTrainingId">
+                <div class="form-group">
+                    <label class="form-label">Training Title *</label>
+                    <input type="text" name="title" id="editTrainingTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Training Topic *</label>
+                    <input type="text" name="training_topic" id="editTrainingTopic" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="editTrainingDescription" class="form-textarea" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Address *</label>
+                        <input type="text" name="address" id="editTrainingAddress" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Block *</label>
+                        <select name="block" id="editTrainingBlock" class="form-select" required>
+                            <option value="">Select Block</option>
+                            <option value="Raipur">Raipur</option>
+                            <option value="Birgaon">Birgaon</option>
+                            <option value="Abhanpur">Abhanpur</option>
+                            <option value="Arang">Arang</option>
+                            <option value="Dhariswa">Dhariswa</option>
+                            <option value="Tilda">Tilda</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Training Date *</label>
+                        <input type="date" name="training_date" id="editTrainingDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Training Time *</label>
+                        <input type="time" name="training_time" id="editTrainingTime" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Duration (Hours) *</label>
+                        <input type="number" name="duration_hours" id="editTrainingDuration" class="form-input" min="0.5" max="24" step="0.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trainees *</label>
+                        <input type="number" name="trainees" id="editTrainingTrainees" class="form-input" min="1" max="500" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Conducted By *</label>
+                    <select name="conducted_by" id="editTrainingConductedBy" class="form-select" required>
+                        <option value="">Select Professional</option>
+                        {% for professional in professionals %}
+                            <option value="{{ professional.id }}">{{ professional.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('editTrainingModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Update Training
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add User
+async function handleAddUser(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        name: formData.get('name'),
+        username: formData.get('username'),
+        password: formData.get('password'),
+        mobile_number: formData.get('mobile_number'),
+        gender: formData.get('gender'),
+        age: parseInt(formData.get('age')),
+        role: formData.get('role'),
+        department: formData.get('department'),
+        designation: formData.get('designation')
+    };
+    
+    try {
+        const response = await apiRequest('/api/users', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.success) {
+            showAlert('User added successfully!', 'success');
+            hideModal('addUserModal');
+            form.reset();
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        console.error('Error adding user:', error);
+    }
+}
+
+// Edit Functions
+async function editUser(id) {
+    try {
+        const response = await apiRequest(`/api/users/${id}`);
+        if (response.success) {
+            const user = response.data;
+            
+            // Populate form fields
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.name || '';
+            document.getElementById('editUserUsername').value = user.username || '';
+            document.getElementById('editUserMobile').value = user.mobile_number || '';
+            document.getElementById('editUserRole').value = user.role || '';
+            document.getElementById('editUserGender').value = user.gender || '';
+            document.getElementById('editUserAge').value = user.age || '';
+            document.getElementById('editUserDepartment').value = user.department || '';
+            document.getElementById('editUserDesignation').value = user.designation || '';
+            document.getElementById('editUserPassword').value = '';
+            
+            showModal('editUserModal');
+        }
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        showAlert('Error loading user data', 'error');
+    }
+}
+
+async function handleEditUser(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = formData.get('id');
+    
+    const data = {
+        name: formData.get('name'),
+        username: formData.get('username'),
+        mobile_number: formData.get('mobile_number'),
+        role: formData.get('role'),
+        gender: formData.get('gender'),
+        age: formData.get('age') ? parseInt(formData.get('age')) : null,
+        department: formData.get('department'),
+        designation: formData.get('designation')
+    };
+    
+    // Only include password if it's provided
+    const password = formData.get('password');
+    if (password && password.trim()) {
+        data.password = password;
+    }
+    
+    try {
+        const response = await apiRequest(`/api/users/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.success) {
+            showAlert('User updated successfully!', 'success');
+            hideModal('editUserModal');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+        showAlert('Error updating user', 'error');
+    }
+}
+
+async function editTrainee(id) {
+    try {
+        const response = await apiRequest(`/api/trainees/${id}`);
+        if (response.success) {
+            const trainee = response.data;
+            
+            // Populate form fields
+            document.getElementById('editTraineeId').value = trainee.id;
+            document.getElementById('editTraineeName').value = trainee.name || '';
+            document.getElementById('editTraineeMobile').value = trainee.mobile_number || '';
+            document.getElementById('editTraineeGender').value = trainee.gender || '';
+            document.getElementById('editTraineeAge').value = trainee.age || '';
+            document.getElementById('editTraineeDepartment').value = trainee.department || '';
+            document.getElementById('editTraineeDesignation').value = trainee.designation || '';
+            document.getElementById('editTraineeAddress').value = trainee.address || '';
+            document.getElementById('editTraineeBlock').value = trainee.block || '';
+            document.getElementById('editTraineeTrainingDate').value = trainee.training_date || '';
+            document.getElementById('editTraineeCPR').checked = trainee.cpr_training || false;
+            document.getElementById('editTraineeFirstAid').checked = trainee.first_aid_kit_given || false;
+            document.getElementById('editTraineeLifeSaving').checked = trainee.life_saving_skills || false;
+            
+            showModal('editTraineeModal');
+        }
+    } catch (error) {
+        console.error('Error fetching trainee:', error);
+        showAlert('Error loading trainee data', 'error');
+    }
+}
+
+async function handleEditTrainee(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = formData.get('id');
+    
+    const data = {
+        name: formData.get('name'),
+        mobile_number: formData.get('mobile_number'),
+        gender: formData.get('gender'),
+        age: parseInt(formData.get('age')),
+        department: formData.get('department'),
+        designation: formData.get('designation'),
+        address: formData.get('address'),
+        block: formData.get('block'),
+        training_date: formData.get('training_date'),
+        cpr_training: form.querySelector('input[name="cpr_training"]').checked,
+        first_aid_kit_given: form.querySelector('input[name="first_aid_kit_given"]').checked,
+        life_saving_skills: form.querySelector('input[name="life_saving_skills"]').checked
+    };
+    
+    try {
+        const response = await apiRequest(`/api/trainees/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.success) {
+            showAlert('Trainee updated successfully!', 'success');
+            hideModal('editTraineeModal');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        console.error('Error updating trainee:', error);
+        showAlert('Error updating trainee', 'error');
+    }
+}
+
+async function editTraining(id) {
+    try {
+        const response = await apiRequest(`/api/trainings/${id}`);
+        if (response.success) {
+            const training = response.data;
+            
+            // Populate form fields
+            document.getElementById('editTrainingId').value = training.id;
+            document.getElementById('editTrainingTitle').value = training.title || '';
+            document.getElementById('editTrainingTopic').value = training.training_topic || '';
+            document.getElementById('editTrainingDescription').value = training.description || '';
+            document.getElementById('editTrainingAddress').value = training.address || '';
+            document.getElementById('editTrainingBlock').value = training.block || '';
+            document.getElementById('editTrainingDate').value = training.training_date || '';
+            document.getElementById('editTrainingTime').value = training.training_time || '';
+            document.getElementById('editTrainingDuration').value = training.duration_hours || '';
+            document.getElementById('editTrainingTrainees').value = training.trainees || '';
+            document.getElementById('editTrainingConductedBy').value = training.conducted_by || '';
+            
+            showModal('editTrainingModal');
+        }
+    } catch (error) {
+        console.error('Error fetching training:', error);
+        showAlert('Error loading training data', 'error');
+    }
+}
+
+async function handleEditTraining(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = formData.get('id');
+    
+    const data = {
+        title: formData.get('title'),
+        training_topic: formData.get('training_topic'),
+        description: formData.get('description'),
+        address: formData.get('address'),
+        block: formData.get('block'),
+        training_date: formData.get('training_date'),
+        training_time: formData.get('training_time'),
+        duration_hours: parseFloat(formData.get('duration_hours')),
+        trainees: parseInt(formData.get('trainees')),
+        conducted_by: parseInt(formData.get('conducted_by'))
+    };
+    
+    try {
+        const response = await apiRequest(`/api/trainings/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.success) {
+            showAlert('Training updated successfully!', 'success');
+            hideModal('editTrainingModal');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        console.error('Error updating training:', error);
+        showAlert('Error updating training', 'error');
+    }
+}
+
+// Delete Functions
+async function deleteUser(id) {
+    if (confirmDelete('Are you sure you want to delete this user?')) {
+        try {
+            const response = await apiRequest(`/api/users/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('User deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    }
+}
+
+async function deleteTrainee(id) {
+    if (confirmDelete('Are you sure you want to delete this trainee?')) {
+        try {
+            const response = await apiRequest(`/api/trainees/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('Trainee deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting trainee:', error);
+        }
+    }
+}
+
+async function deleteTraining(id) {
+    if (confirmDelete('Are you sure you want to delete this training?')) {
+        try {
+            const response = await apiRequest(`/api/trainings/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('Training deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting training:', error);
+        }
+    }
+}
+</script>
+
+<style>
+.table-container {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.data-table th {
+    background-color: var(--gray-50);
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--gray-700);
+    border-bottom: 2px solid var(--gray-200);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+.actions-cell {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.page-subtitle {
+    color: var(--gray-600);
+    margin: 0.5rem 0 0 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-buttons .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: #10b981;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+</style>
+
+<script>
+// Export functions
+function exportToExcel(tableName) {
+    showAlert('Preparing Excel export...', 'info');
+    window.location.href = `/export/excel/${tableName}`;
+}
+
+function exportToPDF(tableName) {
+    showAlert('Preparing PDF export...', 'info');
+    window.location.href = `/export/pdf/${tableName}`;
+}
+
+// Delete Functions
+async function deleteUser(id) {
+    if (confirmDelete('Are you sure you want to delete this user?')) {
+        try {
+            const response = await apiRequest(`/api/users/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('User deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            showAlert('Error deleting user', 'error');
+        }
+    }
+}
+
+async function deleteTrainee(id) {
+    if (confirmDelete('Are you sure you want to delete this trainee?')) {
+        try {
+            const response = await apiRequest(`/api/trainees/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('Trainee deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting trainee:', error);
+            showAlert('Error deleting trainee', 'error');
+        }
+    }
+}
+
+async function deleteTraining(id) {
+    if (confirmDelete('Are you sure you want to delete this training?')) {
+        try {
+            const response = await apiRequest(`/api/trainings/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.success) {
+                showAlert('Training deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            console.error('Error deleting training:', error);
+            showAlert('Error deleting training', 'error');
+        }
+    }
+}
+</script>
+{% endblock %}

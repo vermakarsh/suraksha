@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}SURAKSHA - Login{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <!-- Left Side - Info Section -->
+        <div class="login-info">
+            <div class="login-brand">
+                <div class="logo-container">
+                    <div class="logo-circle">
+                        <img 
+                            src="{{ url_for('static', filename='images/suraksha-logo.svg') }}" 
+                            alt="SURAKSHA Logo" 
+                            class="logo-image"
+                        />
+                    </div>
+                </div>
+                <h1 class="brand-title">SURAKSHA</h1>
+                <p class="brand-subtitle">
+                    Medical Emergency Training & Response System
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="login-form">
+            <div style="margin-bottom: 2rem;">
+                <h2 style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem;">
+                    Welcome Back
+                </h2>
+                <p style="color: var(--gray-600); font-size: 1rem;">
+                    Sign in to access your dashboard
+                </p>
+            </div>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <!-- Role Selection -->
+                <div class="form-group">
+                    <label class="form-label">Select Role</label>
+                    <div class="role-tabs">
+                        <label class="role-tab active" onclick="selectRole('admin', this)">
+                            <input type="radio" name="role" value="admin" checked required>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">👑</div>
+                            <span style="font-weight: 600;">Administrator</span>
+                            <span style="font-size: 0.75rem; color: var(--gray-500);">Full System Access</span>
+                        </label>
+                        <label class="role-tab" onclick="selectRole('professional', this)">
+                            <input type="radio" name="role" value="professional" required>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</div>
+                            <span style="font-weight: 600;">Medical Professional</span>
+                            <span style="font-size: 0.75rem; color: var(--gray-500);">Training Management</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input" 
+                        placeholder="Enter your username"
+                        required
+                        autocomplete="username"
+                    />
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    />
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    class="btn btn-primary w-full"
+                    style="margin-top: 1.5rem; font-size: 1rem; padding: 0.875rem;"
+                >
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Additional Info -->
+            <div style="margin-top: 2rem; text-align: center; color: var(--gray-500); font-size: 0.875rem;">
+                <p>For assistance, contact your system administrator</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectRole(role, element) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.role-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Add active class to selected tab
+    element.classList.add('active');
+    
+    // Check the radio button
+    element.querySelector('input[type="radio"]').checked = true;
+}
+</script>
+{% endblock %}
