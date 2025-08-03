@@ -12,6 +12,7 @@ from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
+from config import Config
 
 # Custom JSON encoder for handling datetime, timedelta, and Decimal objects
 class CustomJSONEncoder(json.JSONEncoder):
@@ -44,7 +45,14 @@ def serialize_data(data):
         return data
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = 'suraksha-medical-training-2024'
+
+# Load configuration
+config = Config()
+app.secret_key = config.SECRET_KEY
+app.config['SESSION_COOKIE_SECURE'] = config.SESSION_COOKIE_SECURE
+app.config['SESSION_COOKIE_HTTPONLY'] = config.SESSION_COOKIE_HTTPONLY  
+app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
+
 app.json_encoder = CustomJSONEncoder
 
 # Add date filter for templates
@@ -67,10 +75,10 @@ def inject_now():
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '8305',
-    'database': 'suraksha_db',
+    'host': config.DB_HOST,
+    'user': config.DB_USER,
+    'password': config.DB_PASSWORD,
+    'database': config.DB_NAME,
     'charset': 'utf8mb4',
     'use_unicode': True
 }
@@ -611,13 +619,13 @@ def update_training(training_id):
             UPDATE trainings SET 
                 title = %s, training_topic = %s, description = %s, address = %s,
                 block = %s, training_date = %s, training_time = %s,
-                duration_hours = %s, trainees = %s, conducted_by = %s
+                duration_hours = %s, trainees = %s, status = %s, conducted_by = %s
             WHERE id = %s
         """, (
             data.get('title'), data.get('training_topic'), data.get('description'),
             data.get('address'), data.get('block'), data.get('training_date'),
             data.get('training_time'), data.get('duration_hours'),
-            data.get('trainees'), data.get('conducted_by'), training_id
+            data.get('trainees'), data.get('status'), data.get('conducted_by'), training_id
         ))
         
         connection.commit()
@@ -906,8 +914,8 @@ def create_training():
         query = """
             INSERT INTO trainings (title, description, training_topic, address, block,
                                  training_date, training_time, duration_hours, trainees,
-                                 conducted_by)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                 status, conducted_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (
             data['title'],
@@ -919,6 +927,7 @@ def create_training():
             data['training_time'],
             data['duration_hours'],
             data.get('trainees', 0),
+            data.get('status', 'Planned'),
             data['conducted_by']
         ))
         
@@ -1171,9 +1180,10 @@ def export_pdf(table_name):
         
     except Exception as e:
         return jsonify({'error': f'PDF export failed: {str(e)}'}), 500
-    finally:
-        cursor.close()
-        connection.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(
+        host=config.HOST, 
+        port=config.PORT, 
+        debug=config.DEBUG
+    )

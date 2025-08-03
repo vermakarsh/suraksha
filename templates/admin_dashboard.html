@@ -126,7 +126,6 @@
                     </div>
                     <div class="data-card-footer">
                         <div class="actions-cell">
-                            <button class="btn btn-sm btn-secondary" onclick="viewProfessional({{ professional.id }})">
                             <button class="btn btn-sm btn-info" onclick="viewProfessionalDetails({{ professional.id }})">
                                 View
                             </button>
@@ -523,8 +522,8 @@
                         <input type="number" name="duration_hours" class="form-input" min="0.5" max="24" step="0.5" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Trainees *</label>
-                        <input type="number" name="trainees" class="form-input" min="1" max="500" required>
+                        <label class="form-label">Max Trainees *</label>
+                        <input type="number" name="max_trainees" class="form-input" min="1" max="500" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -648,6 +647,36 @@ function filterTrainings() {
     });
 }
 
+function sortProfessionals() {
+    const sortBy = document.getElementById('professionalSort').value;
+    const grid = document.getElementById('professionalsGrid');
+    const cards = Array.from(document.querySelectorAll('.professional-card'));
+    
+    cards.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortBy === 'name') {
+            aValue = a.dataset.name;
+            bValue = b.dataset.name;
+            return aValue.localeCompare(bValue);
+        } else if (sortBy === 'total_trainings') {
+            aValue = parseInt(a.dataset.trainings) || 0;
+            bValue = parseInt(b.dataset.trainings) || 0;
+            return bValue - aValue; // Descending order
+        } else if (sortBy === 'experience_years') {
+            aValue = parseInt(a.dataset.experience) || 0;
+            bValue = parseInt(b.dataset.experience) || 0;
+            return bValue - aValue; // Descending order
+        }
+        
+        return 0;
+    });
+    
+    // Remove all cards and re-add them in sorted order
+    cards.forEach(card => card.remove());
+    cards.forEach(card => grid.appendChild(card));
+}
+
 // CRUD operations
 async function handleAddProfessional(event) {
     event.preventDefault();
@@ -734,7 +763,7 @@ async function handleAddTraining(event) {
         training_date: formData.get('training_date'),
         training_time: formData.get('training_time'),
         duration_hours: parseFloat(formData.get('duration_hours')),
-        trainees: parseInt(formData.get('trainees')),
+        trainees: parseInt(formData.get('max_trainees')),
         conducted_by: parseInt(formData.get('conducted_by'))
     };
     
@@ -1106,6 +1135,15 @@ async function deleteTraining(id) {
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Conducted By *</label>
+                    <select id="editTrainingConductedBy" name="conducted_by" class="form-select" required>
+                        <option value="">Select Professional</option>
+                        {% for professional in professionals %}
+                            <option value="{{ professional.id }}">{{ professional.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Status</label>
                     <select id="editTrainingStatus" name="status" class="form-select">
                         <option value="Planned">Planned</option>
@@ -1355,7 +1393,8 @@ function editTrainingRecord(id) {
         document.getElementById('editTrainingDate').value = training.training_date;
         document.getElementById('editTrainingTime').value = training.training_time;
         document.getElementById('editTrainingDuration').value = training.duration_hours;
-        document.getElementById('editTrainingMaxTrainees').value = training.max_trainees;
+        document.getElementById('editTrainingMaxTrainees').value = training.max_trainees || training.trainees;
+        document.getElementById('editTrainingConductedBy').value = training.conducted_by;
         document.getElementById('editTrainingStatus').value = training.status || 'Planned';
         showModal('editTrainingModal');
     }
@@ -1412,9 +1451,9 @@ async function handleEditTrainee(event) {
         address: formData.get('address'),
         block: formData.get('block'),
         training_date: formData.get('training_date'),
-        cpr_training: formData.has('cpr_training'),
-        first_aid_kit_given: formData.has('first_aid_kit_given'),
-        life_saving_skills: formData.has('life_saving_skills')
+        cpr_training: form.querySelector('input[name="cpr_training"]').checked,
+        first_aid_kit_given: form.querySelector('input[name="first_aid_kit_given"]').checked,
+        life_saving_skills: form.querySelector('input[name="life_saving_skills"]').checked
     };
     
     try {
@@ -1448,8 +1487,9 @@ async function handleEditTraining(event) {
         training_date: formData.get('training_date'),
         training_time: formData.get('training_time'),
         duration_hours: parseFloat(formData.get('duration_hours')),
-        max_trainees: parseInt(formData.get('max_trainees')),
-        status: formData.get('status')
+        trainees: parseInt(formData.get('max_trainees')),
+        status: formData.get('status'),
+        conducted_by: parseInt(formData.get('conducted_by'))
     };
     
     try {

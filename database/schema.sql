@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS trainings (
     duration_hours DECIMAL(3,1) DEFAULT 1.0,
     trainees INT DEFAULT 50,
     current_trainees INT DEFAULT 0,
+    status ENUM('Planned', 'Ongoing', 'Completed', 'Cancelled') DEFAULT 'Planned',
     conducted_by INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
