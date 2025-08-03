@@ -30,15 +30,15 @@
     <div class="card">
         <div class="nav-tabs">
             <button class="nav-tab {% if current_table == 'users' %}active{% endif %}" 
-                    onclick="window.location.href='/data?table=users'">
+                    onclick="window.location.href='/expdata?table=users'">
                 Users Table
             </button>
             <button class="nav-tab {% if current_table == 'trainees' %}active{% endif %}" 
-                    onclick="window.location.href='/data?table=trainees'">
+                    onclick="window.location.href='/expdata?table=trainees'">
                 Trainees Table
             </button>
             <button class="nav-tab {% if current_table == 'trainings' %}active{% endif %}" 
-                    onclick="window.location.href='/data?table=trainings'">
+                    onclick="window.location.href='/expdata?table=trainings'">
                 Trainings Table
             </button>
         </div>
@@ -54,9 +54,6 @@
                     </button>
                     <button class="btn btn-danger" onclick="exportToPDF('users')">
                         <span>📄</span> Export PDF
-                    </button>
-                    <button class="btn btn-primary" onclick="showModal('addUserModal')">
-                        Add New User
                     </button>
                 </div>
             </div>
@@ -124,9 +121,6 @@
                     </button>
                     <button class="btn btn-danger" onclick="exportToPDF('trainees')">
                         <span>📄</span> Export PDF
-                    </button>
-                    <button class="btn btn-primary" onclick="showModal('addTraineeModal')">
-                        Add New Trainee
                     </button>
                 </div>
             </div>
@@ -205,12 +199,7 @@
                     <button class="btn btn-danger" onclick="exportToPDF('trainings')">
                         <span>📄</span> Export PDF
                     </button>
-                    <button class="btn btn-primary" onclick="showModal('addTrainingModal')">
-                        Add New Training
-                    </button>
                 </div>
-            </div>
-                </button>
             </div>
             
             <div class="table-container">

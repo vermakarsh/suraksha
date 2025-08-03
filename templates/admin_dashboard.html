@@ -47,7 +47,7 @@
             <button class="nav-tab" onclick="switchTab('trainings')" data-tab="trainings">
                 Training Sessions
             </button>
-            <a href="/data" class="nav-tab" style="text-decoration: none; background: #2563eb; color: white;">
+            <a href="/expdata" class="nav-tab" style="text-decoration: none; background: #2563eb; color: white;">
                 📊 Database Viewer
             </a>
         </div>
@@ -79,9 +79,17 @@
         <div id="professionals" class="card-content tab-content" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 class="card-title">Medical Professionals</h2>
-                <button class="btn btn-primary" onclick="showModal('addProfessionalModal')">
-                    Add New Professional
-                </button>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel('users')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('users')">
+                        <span>📄</span> Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('addProfessionalModal')">
+                        Add New Professional
+                    </button>
+                </div>
             </div>
             
             <div class="search-filter-bar">
@@ -148,6 +156,12 @@
                 <h2 class="card-title">All Trainees</h2>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <div class="data-count">Showing {{ trainees|length }} trainees</div>
+                    <button class="btn btn-success" onclick="exportToExcel('trainees')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('trainees')">
+                        <span>📄</span> Export PDF
+                    </button>
                     <button class="btn btn-primary" onclick="showModal('addTraineeModal')">
                         Add New Trainee
                     </button>
@@ -230,9 +244,17 @@
         <div id="trainings" class="card-content tab-content" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 class="card-title">Training Sessions</h2>
-                <button class="btn btn-primary" onclick="showModal('addTrainingModal')">
-                    Add New Training
-                </button>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel('trainings')">
+                        <span>📊</span> Export Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="exportToPDF('trainings')">
+                        <span>📄</span> Export PDF
+                    </button>
+                    <button class="btn btn-primary" onclick="showModal('addTrainingModal')">
+                        Add New Training
+                    </button>
+                </div>
             </div>
             
             <div class="search-filter-bar">
@@ -1506,6 +1528,17 @@ async function handleEditTraining(event) {
     } catch (error) {
         console.error('Error updating training:', error);
     }
+}
+
+// Export functions
+function exportToExcel(tableName) {
+    showAlert('Preparing Excel export...', 'info');
+    window.location.href = `/export/excel/${tableName}`;
+}
+
+function exportToPDF(tableName) {
+    showAlert('Preparing PDF export...', 'info');
+    window.location.href = `/export/pdf/${tableName}`;
 }
 </script>
 

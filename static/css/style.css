@@ -802,8 +802,8 @@ body {
 }
 
 .logo-circle {
-  width: 120px;
-  height: 120px;
+  width: 190px;
+  height: 190px;
   background: white;
   border-radius: 50%;
   display: flex;
@@ -814,8 +814,8 @@ body {
 }
 
 .logo-image {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
 }
 
 .brand-title {

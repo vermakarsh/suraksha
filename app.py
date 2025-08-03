@@ -53,6 +53,10 @@ app.config['SESSION_COOKIE_SECURE'] = config.SESSION_COOKIE_SECURE
 app.config['SESSION_COOKIE_HTTPONLY'] = config.SESSION_COOKIE_HTTPONLY  
 app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
 
+# Server configuration temporarily disabled for localhost testing
+# app.config['SERVER_NAME'] = 'http://165.22.208.62:5004'
+# app.config['PREFERRED_URL_SCHEME'] = 'http'
+
 app.json_encoder = CustomJSONEncoder
 
 # Add date filter for templates
@@ -268,7 +272,7 @@ def professional_dashboard():
         cursor.close()
         connection.close()
 
-@app.route('/data')
+@app.route('/expdata')
 def data_viewer():
     """Database viewer page showing all tables"""
     if 'user_id' not in session or session.get('role') != 'admin':
@@ -696,6 +700,7 @@ def add_professional():
             data.get('experience_years', 0)
         ))
         
+        connection.commit()
         return jsonify({'success': True, 'message': 'Professional added successfully'})
         
     except mysql.connector.Error as e:
@@ -829,9 +834,10 @@ def register_trainee():
             data.get('cpr_training', False),
             data.get('first_aid_kit_given', False),
             data.get('life_saving_skills', False),
-            data['registered_by']
+            data.get('registered_by', session['user_id'])  # Default to current user if not provided
         ))
         
+        connection.commit()
         return jsonify({'success': True, 'message': 'Trainee registered successfully'})
         
     except mysql.connector.Error as e:
@@ -931,6 +937,7 @@ def create_training():
             data['conducted_by']
         ))
         
+        connection.commit()
         return jsonify({'success': True, 'message': 'Training created successfully'})
         
     except mysql.connector.Error as e:
@@ -1016,11 +1023,18 @@ def export_excel(table_name):
         # Convert to DataFrame
         df = pd.DataFrame(data)
         
-        # Format datetime columns
+        # Format datetime columns safely
         for col in df.columns:
             if 'date' in col.lower() or 'created_at' in col or 'updated_at' in col:
                 if not df[col].empty and df[col].notna().any():
-                    df[col] = pd.to_datetime(df[col]).dt.strftime('%Y-%m-%d %H:%M:%S')
+                    try:
+                        # Convert to datetime with error handling
+                        df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d %H:%M:%S')
+                        # Replace any NaT values with empty string
+                        df[col] = df[col].fillna('')
+                    except Exception as e:
+                        # If conversion fails, convert to string
+                        df[col] = df[col].astype(str)
         
         # Create Excel file in memory
         output = BytesIO()

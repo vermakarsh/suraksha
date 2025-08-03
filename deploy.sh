@@ -80,11 +80,14 @@ fi
 
 # Step 6: Setup MySQL database
 print_header "Step 6: Setting up database"
-DB_PASSWORD="Ssipmt@2025DODB"
+
+# Prompt for MySQL root password
+print_status "Please enter your MySQL root password:"
+read -s DB_PASSWORD
 
 # Test database connection
 print_status "Testing database connection..."
-if mysql -h 127.0.0.1 -u root -p"$DB_PASSWORD" -e "SELECT 1;" >/dev/null 2>&1; then
+if mysql -u root -p"$DB_PASSWORD" -e "SELECT 1;" >/dev/null 2>&1; then
     print_status "Database connection successful"
 else
     print_error "Failed to connect to database. Please check your MySQL server and credentials."
@@ -93,8 +96,11 @@ fi
 
 # Create database and import schema
 print_status "Creating database and importing schema..."
-mysql -h 127.0.0.1 -u root -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS suraksha_db;"
-mysql -h 127.0.0.1 -u root -p"$DB_PASSWORD" suraksha_db < database/schema.sql
+mysql -u root -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS suraksha_db;"
+mysql -u root -p"$DB_PASSWORD" suraksha_db < database/schema.sql
+
+# Update .env file with the entered password
+sed -i "s/your_mysql_password_here/$DB_PASSWORD/" .env
 
 print_status "Database setup completed successfully"
 
@@ -103,10 +109,10 @@ print_header "Step 7: Setting up Nginx"
 sudo tee /etc/nginx/sites-available/suraksha << EOF
 server {
     listen 80;
-    server_name _;  # Replace with your domain
+    server_name 165.22.208.62;
     
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:5004;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -140,7 +146,7 @@ print_status "Nginx configured and started"
 print_header "Step 8: Setting up process management"
 sudo tee /etc/supervisor/conf.d/suraksha.conf << EOF
 [program:suraksha]
-command=$APP_DIR/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 --timeout 60 --keep-alive 5 wsgi:app
+command=$APP_DIR/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5004 --timeout 60 --keep-alive 5 wsgi:app
 directory=$APP_DIR
 user=$(whoami)
 autostart=true
