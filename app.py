@@ -54,7 +54,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = config.SESSION_COOKIE_HTTPONLY
 app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
 
 # Server configuration temporarily disabled for localhost testing
-app.config['SERVER_NAME'] = 'http://165.22.208.62:5004'
+app.config['SERVER_NAME'] = 'http://165.22.208.62:8000'
 app.config['PREFERRED_URL_SCHEME'] = 'http'
 
 app.json_encoder = CustomJSONEncoder
